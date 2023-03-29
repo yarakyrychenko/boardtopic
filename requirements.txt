@@ -3,5 +3,5 @@ pandas
 numpy
 bertopic
 river
-sklearn
+scikit-learn
 gdown
