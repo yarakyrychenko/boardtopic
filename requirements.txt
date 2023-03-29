@@ -1,0 +1,7 @@
+streamlit
+pandas
+numpy
+bertopic
+river
+sklearn
+gdown
