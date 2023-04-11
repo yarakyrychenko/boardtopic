@@ -2,6 +2,5 @@ streamlit
 pandas
 numpy
 bertopic
-river
+river=0.10.0
 scikit-learn
-gdown
