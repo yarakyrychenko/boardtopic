@@ -7,9 +7,8 @@ from helper import visualize_topics_over_time, visualize_topics_per_class
 
 @st.cache_data
 def get_df(url):
-    df = pd.read_csv(url)
-    return df
-    
+    return pd.read_csv(url)
+
 @st.cache_resource
 def get_model(url):
     return BERTopic.load(url)
@@ -17,7 +16,7 @@ def get_model(url):
 @st.cache_data
 def get_topics_over_time(frame,lens):
     strings = frame.proc2.apply(lambda x: str(x))
-    date = pd.to_datetime(frame.date)
+    date = pd.to_datetime(frame.date,format=st.session_state.datetime_format)
     return st.session_state.model.topics_over_time(strings, date, nr_bins=math.floor(len(frame.date.unique())/3))
 
 @st.cache_data
@@ -41,29 +40,33 @@ if "model" not in st.session_state:
     st.markdown("If you already have a BoardTopic model trained, please enter the information below:")
     model_name = st.text_input("Please enter model file name (e.g., 'model')")
     df_name =  st.text_input("Please enter dataframe file name (e.g., 'df_small.csv')")
+    datetime_format = st.text_input("Please enter the date format (e.g., '%d.%m.%Y')", value="")
+    st.session_state.datetime_format = None if datetime_format == "" else datetime_format
     if st.button("Enter"):
         st.session_state.model = get_model(f'models/{model_name}')
         st.session_state.df = get_df(f'models/{df_name}')
         st.success("Model and dataframe loaded!")
 if "model" in st.session_state:
+    if "datetime_format" not in st.session_state:
+        st.session_state.datetime_format = st.text_input("Please enter the date format (e.g., '%d.%m.%Y')", value="", key="datetime_format")
+        st.session_state.datetime_format = None if st.session_state.datetime_format == "" else st.session_state.datetime_format
     #st.session_state.df = get_df("df_small.csv")
     st.session_state.model.set_topic_labels(st.session_state.model.generate_topic_labels(nr_words=6, topic_prefix=False, word_length=10, separator=", "))
     st.session_state.model_df = st.session_state.model.get_document_info(st.session_state.df.proc)
     st.session_state.df["id"] = st.session_state.model_df.index
     st.session_state.model_df["id"] = st.session_state.model_df.index
     st.session_state.model_df = pd.merge(st.session_state.model_df,st.session_state.df,how="left",on="id")
-    st.session_state.model_df["date"] =  pd.to_datetime(st.session_state.model_df.date)
+    st.session_state.model_df["date"] = pd.to_datetime(st.session_state.model_df.date,format=st.session_state.datetime_format)
 
     topics_over_time = get_topics_over_time(st.session_state.df,len(st.session_state.df))
     largest_topics  = st.session_state.model_df.groupby("Topic").agg("count").sort_values("Document",ascending=False)[0:10]
-
     st.write(visualize_topics_over_time(st.session_state.model, topics_over_time, topics=list(largest_topics.index),
                                                            custom_labels=True, title = "10 most popular narratives over time"))
 
     st.markdown("#### Overall document distribution")
 
     grouped = st.session_state.model_df.groupby("date").agg("count")
-    grouped['date'] = pd.to_datetime(grouped.index)
+    grouped['date'] = pd.to_datetime(grouped.index,format=st.session_state.datetime_format)
     st.bar_chart(data=grouped, x='date', y='Document')
 
     st.markdown("#### Emotions")
@@ -88,7 +91,7 @@ if "model" in st.session_state:
     st.bar_chart(emotions.groupby("source").agg("mean")*100)
 
     emotionsgr = emotions.groupby("date").agg("mean")*100
-    emotionsgr['date'] = pd.to_datetime(grouped.index)
+    emotionsgr['date'] = pd.to_datetime(grouped.index,format=st.session_state.datetime_format)
 
     st.markdown("##### Emotional dynamics over time")
     st.line_chart(emotionsgr,x="date")

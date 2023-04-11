@@ -42,8 +42,10 @@ if "model" in st.session_state:
     st.write(old_df)
 
     st.markdown("#### Please eneter a name for the updated model and upload files below")
-    name = st.text_input("Please enter a model name (e.g., 'ukraine_war_jan5')")
+    name = st.text_input("Please enter a model name (e.g., 'my_cool_model')")
     language = st.radio("Please pick one language that best describes your data", ["English","Russian/Ukrainian","Other"],horizontal=True)
+    datetime_format = st.text_input("Please enter the date format (e.g., '%d.%m.%Y')", value="")
+    st.session_state.datetime_format = None if datetime_format == "" else datetime_format
     uploaded_files = st.file_uploader("Choose a CSV file", accept_multiple_files=True)
     if st.button('All files selected'):
         for i in range(len(uploaded_files)):

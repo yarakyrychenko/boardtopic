@@ -43,6 +43,8 @@ st.subheader("Use this page to create a model with your data")
 model_name = st.text_input("Please enter a name for the new model (e.g., 'ukraine_war_jan5')")
 df_name =  st.text_input("Please enter data file path (e.g., 'data/df.csv')")
 language = st.radio("Please pick one language that best describes your data", ["English","Russian/Ukrainian","Other"],horizontal=True)
+datetime_format = st.text_input("Please enter the date format (e.g., '%d.%m.%Y')", value="")
+st.session_state.datetime_format = None if datetime_format == "" else datetime_format
 embs_name = st.text_input("Please enter embedding file path if any (e.g., 'data/embs.csv')")
 
 if st.button("Train new model"):
